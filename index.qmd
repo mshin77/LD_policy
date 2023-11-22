@@ -1,0 +1,279 @@
+
+---
+title: "텍스트 마이닝을 활용한 미래 특수교육 발전 방안에 따른 학습장애 학생 교육 방향에 대한 인식 분석"
+subtitle: "Analysis of Perception on the Direction of Education for Students with Learning Disabilities Regarding Future Special Education Development Plans Using Text Mining"
+output: 
+  html_document:
+    code_folding: false
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+::: {.panel-tabset}
+
+## **1. 준비하기**
+
+R 패키지 설치 및 불러오기
+
+```{r}
+# install.packages(c("readxl", "dplyr", "tidyr", "stringr", "tidyverse"))
+# install.packages('devtools')
+# devtools::install_github('haven-jeon/KoNLP')
+suppressPackageStartupMessages({
+    library(readxl)
+    library(dplyr)
+    library(tidyr)
+    library(stringr)
+    library(KoNLP)
+    library(tidytext)
+    library(tidyverse)
+    library(DT)
+})
+```
+
+## **2. 학회지 분석**
+
+2.1. 엑셀 파일 열기 
+
+```{r}
+#| code-fold: false
+data_riss <- read_excel("data/ld_policy_riss.xlsx")
+data_riss <- data_riss %>%
+    mutate(document = paste(저자, "(", 발행연도, ")", sep = "")) %>%
+    select(document, everything())
+
+sixth_sped_riss <- data_riss %>% filter(policy_topic == "6차특수교육발전계획")
+support_center_riss <- data_riss %>% filter(policy_topic == "기초학력지원센터_특수교육지원센터")
+out_of_school_riss <- data_riss %>% filter(policy_topic == "학교교육_학교밖_교육연계")
+```
+
+2.2. 텍스트 열 선택
+
+```{r}
+#| code-fold: true
+sixth_sped_riss_text <- sixth_sped_riss %>%
+    select("제목", "주제어", "국문 초록 (Abstract)") %>%
+    unite(
+        col = combined_text,
+        sep = " ",
+        remove = FALSE
+    )
+
+sixth_sped_riss_data <- left_join(sixth_sped_riss, sixth_sped_riss_text, by = "제목") %>%
+    select(-ends_with(".y")) %>%
+    rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
+
+
+support_center_riss_text <- support_center_riss %>%
+    select("제목", "주제어", "국문 초록 (Abstract)") %>%
+    unite(
+        col = combined_text,
+        sep = " ",
+        remove = FALSE
+    )
+
+support_center_riss_data <- left_join(support_center_riss, support_center_riss_text, by = "제목") %>%
+    select(-ends_with(".y")) %>%
+    rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
+
+out_of_school_riss_text <- out_of_school_riss %>%
+    select("제목", "주제어", "국문 초록 (Abstract)") %>%
+    unite(
+        col = combined_text,
+        sep = " ",
+        remove = FALSE
+    )
+
+out_of_school_riss_data <- left_join(out_of_school_riss, out_of_school_riss_text, by = "제목") %>%
+    select(-ends_with(".y")) %>%
+    rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
+```
+
+2.3. 단어 빈도-역문서 빈도 분석에 필요한 함수 정의
+
+```{r}
+#| code-fold: true
+
+# 불필요한 패턴 제거 함수 
+# This function is to remove specific patterns from a text column.
+# 
+# @param {data} The input dataframe.
+# @param {text_col} The name of the text column in the dataframe.
+# @param {...} Additional arguments to be passed to the function.
+# @return The cleaned dataframe with an additional processed_text column.
+rm_patterns <- function(data, text_col, ...) {
+    homepage <- "(HTTP(S)?://)?([A-Z0-9]+(-?[A-Z0-9])*\\.)+[A-Z0-9]{2,}(/\\S*)?"
+    date <- "(19|20)?\\d{2}[-/.][0-3]?\\d[-/.][0-3]?\\d"
+    phone <- "0\\d{1,2}[- ]?\\d{2,4}[- ]?\\d{4}"
+    email <- "[A-Z0-9.-]+@[A-Z0-9.-]+"
+    hangule <- "[ㄱ-ㅎㅏ-ㅣ]+"
+    punctuation <- "[:punct:]"
+    text_p <- "[^가-힣A-Z0-9]"
+
+    cleaned_data <- data %>%
+        mutate(
+            processed_text = !!sym(text_col) %>%
+                str_remove_all(homepage) %>%
+                str_remove_all(date) %>%
+                str_remove_all(phone) %>%
+                str_remove_all(email) %>%
+                str_remove_all(hangule) %>%
+                str_replace_all(punctuation, " ") %>%
+                str_replace_all(text_p, " ") %>%
+                str_squish()
+        ) 
+
+    return(cleaned_data)
+}
+
+# 용언과 체언 추출 함수  
+# This function is to extract morphemes (noun and verb familiies). 
+# 
+# @param {data} The input data to be processed.
+# @param {text_col} The name of the text column in the dataframe.
+# @param {...} Additional arguments to be passed to the function.
+# @returns {pos_td} The processed data containing the extracted nouns, adjectives, and verbs.
+extract_pos <- function(data, text_col, ...) {
+    pos_init <- data %>%
+        unnest_tokens(pos_init, text_col, token = SimplePos09) %>%
+        group_by(document) %>%
+        mutate(pos_n = 1:n())
+    
+    noun <- pos_init %>%
+        filter(str_detect(pos_init, "/n")) %>%
+        mutate(pos = str_remove(pos_init, "/.*$"))
+    
+    verb <- pos_init %>%
+        filter(str_detect(pos_init, "/p")) %>%
+        mutate(pos = str_replace_all(pos_init, "/.*$", "다"))
+    
+    pos_td <- bind_rows(noun, verb) %>%
+        arrange(pos_n) %>%
+        filter(nchar(pos) > 1) %>%
+        tibble()
+    
+    return(pos_td)
+}
+
+# 단어 빈도-역문서 빈도 계산 함수
+# Calculate TF-IDF and display the results in a datatable.
+# 
+# @param {data} The input data containing the document-term frequencies.
+# @param {term} The name of the term column in the dataframe.
+# @param {document} The name of the document column in the dataframe.
+# @param {...} Additional arguments to be passed to the function.
+# @returns {tf_idf_dt} The processed data containing the TF-IDF values.
+calculate_tf_idf <- function(data, pos, document, ...) {
+    tf_idf <- data %>%
+        bind_tf_idf(pos, document, n) %>%
+        arrange(desc(tf_idf)) %>%
+        mutate_if(is.numeric, ~ round(., 3))
+
+    tf_idf_dt <- tf_idf %>%
+        datatable(options = list(
+            pageLength = 5,
+            initComplete = JS(
+                "
+                function(settings, json) {
+                    $(this.api().table().header()).css({
+                        'font-family': 'Arial, sans-serif',
+                        'font-size': '16px',
+                    });
+                }
+                "
+            )
+        )) %>%
+        formatStyle(columns = colnames(.$x$data), `font-size` = "15px")
+
+    return(tf_idf_dt)
+}
+```
+
+2.4. `6차특수교육발전계획 단어 빈도-역문서 빈도`
+
+```{r}
+#| code-fold: true
+sixth_sped_riss_processed <- sixth_sped_riss_data %>%
+    rm_patterns(text_col = "combined_text")
+
+sixth_sped_pos_td <- sixth_sped_riss_processed %>%
+    extract_pos(text_col = "processed_text") 
+
+sixth_sped_pos_doc <- sixth_sped_pos_td %>%
+    count(document, pos, sort = TRUE)
+
+sixth_sped_pos_doc %>% calculate_tf_idf(term = "pos", document = "document")
+```
+
+2.5. `기초학력지원센터_특수교육지원센터 단어 빈도-역문서 빈도`
+
+```{r}
+#| code-fold: true
+
+support_center_riss_processed <- support_center_riss_data %>%
+    rm_patterns(text_col = "combined_text")
+
+support_center_pos_td <- support_center_riss_processed %>%
+    extract_pos(text_col = "processed_text")
+
+support_center_pos_doc <- support_center_pos_td %>%
+    count(document, pos, sort = TRUE)
+
+support_center_pos_doc %>% calculate_tf_idf(term = "pos", document = "document")
+```
+
+2.6. `학교교육_학교밖_교육연계 단어 빈도-역문서 빈도`
+
+```{r}
+#| code-fold: true
+
+out_of_school_riss_processed <- out_of_school_riss_data %>%
+    rm_patterns(text_col = "combined_text")
+
+out_of_school_pos_td <- out_of_school_riss_processed %>%
+    extract_pos(text_col = "processed_text")
+
+out_of_school_pos_doc <- out_of_school_pos_td %>%
+    count(document, pos, sort = TRUE)
+
+out_of_school_pos_doc %>% calculate_tf_idf(term = "pos", document = "document")
+```
+
+## 3. 뉴스 기사 분석
+
+3.1. 엑셀 파일 열기
+
+```{r}
+data_news <- read_excel("data/ld_policy_news.xlsx")
+data_news <- data_news %>%
+    mutate(document = paste0("text", row.names(.))) %>%
+    select(document, everything())
+
+sixth_sped_news <- data_news  %>% filter(policy_topic == "6차특수교육발전계획")
+support_center_news <- data_news  %>% filter(policy_topic == "기초학력지원센터_특수교육지원센터")
+out_of_school_news <- data_news  %>% filter(policy_topic == "학교교육_학교밖_교육연계")
+```
+
+3.2. 
+
+```{r}
+#| code-fold: true
+sixth_sped_news <- sixth_sped_news %>%
+    rm_patterns(text_col = "article")
+
+sixth_sped_news %<>%
+  select(pdate, article) %>%
+  filter(complete.cases(article))
+
+ld_policy_news_sixth_sped_proc %>% duplicated() %>% sum()
+ld_policy_news_sixth_sped_proc %<>% filter(!duplicated(.))
+
+less_50 <- ld_policy_news_sixth_sped_proc$article[nchar(ld_policy_news_sixth_sped_proc$article) < 50]
+ld_policy_news_sixth_sped_proc_rm <- ld_policy_news_sixth_sped_proc  %>% filter(nchar(ld_policy_news_sixth_sped_proc$article) >= 50)
+
+ld_policy_news_sixth_sped_proc_rm$article %>% nchar() %>% range()
+```
+
+:::
