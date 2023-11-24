@@ -8,7 +8,7 @@ format:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 ::: panel-tabset
@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 #| code-fold: false
-# install.packages(c("readxl", "magrittr", "dplyr", "tidyr", "stringr", "tidyverse", "tidygraph", "igraph", "ggraph", "widyr"))
+# install.packages(c("readxl", "magrittr", "dplyr", "tidyr", "stringr", "tidyverse", "tidygraph", "igraph", "ggraph", "widyr", "ggplot2"))
 # install.packages('devtools')
 # devtools::install_github('haven-jeon/KoNLP')
 # devtools::install_github("mshin77/TextAnalysisR")
@@ -42,6 +42,7 @@ suppressPackageStartupMessages({
     library(igraph)
     library(ggraph)
     library(widyr)
+    library(ggplot2)
     library(TextAnalysisR)
 })
 ```
@@ -404,10 +405,10 @@ sixth_sped_gg <- sixth_sped_corr %>%
     create_graph(layout_type = "fr") %>%
     plot_graph()
 
-ggsave("figure/sixth_sped_gg.png", width = 6, height = 6)
+ggsave("figure/sixth_sped_gg.png", width = 8, height = 6)
 ```
 
-![](figure/sixth_sped_gg.png){width=50% height=50%}
+![](figure/sixth_sped_gg.png){width=80% height=60%}
 
 **3.6. 기초학력지원센터 특수교육지원센터 단어 네트워크 시각화**
 
@@ -426,10 +427,10 @@ support_center_gg <- support_center_corr %>%
     create_graph(layout_type = "fr") %>%
     plot_graph()
 
-ggsave("figure/support_center_gg.png", width = 6, height = 6)
+ggsave("figure/support_center_gg.png", width = 8, height = 6)
 ```
 
-![](figure/support_center_gg.png){width=50% height=50%}
+![](figure/support_center_gg.png){width=80% height=60%}
 
 **3.7. 학교교육 학교밖 교육연계 단어 네트워크 시각화**
 
@@ -448,10 +449,10 @@ out_of_school_gg <- out_of_school_corr %>%
     create_graph(layout_type = "fr") %>%
     plot_graph()
 
-ggsave("figure/out_of_school_gg.png", width = 8, height = 6)
+ggsave("figure/out_of_school_gg.png", width = 8.5, height = 6)
 ```
 
-![](figure/out_of_school_gg.png){width=50% height=50%}
+![](figure/out_of_school_gg.png){width=80% height=60%}
 
 ## **4. 전문가 자유 응답 토픽 모델링**
 
@@ -459,7 +460,7 @@ ggsave("figure/out_of_school_gg.png", width = 8, height = 6)
 
 ```{r}
 #| code-fold: false
-TextAnalysisR.app()
+# TextAnalysisR.app()
 ```
 
 :::
