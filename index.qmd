@@ -234,7 +234,7 @@ out_of_school_riss_data %>%
 
 ## **3. 뉴스 기사 분석**
 
-**3.1. 엑셀 파일 열기**
+**3.1. 데이터 준비**
 
 ```{r}
 #| code-fold: false
@@ -246,53 +246,24 @@ data_news <- data_news %>%
 sixth_sped_news <- data_news %>% filter(policy_topic == "6차특수교육발전계획")
 support_center_news <- data_news %>% filter(policy_topic == "기초학력지원센터_특수교육지원센터")
 out_of_school_news <- data_news %>% filter(policy_topic == "학교교육_학교밖_교육연계")
-```
 
-**3.2. 뉴스 기사 문자 길이 범위**
-
-6차특수교육발전계획
-
-```{r}
 # 중복 기사 확인 및 삭제
 # sixth_sped_news %>% duplicated() %>% sum()
 sixth_sped_news %<>% filter(!duplicated(.))
 
-# 50자 이상의 뉴스 기사 선택 및 문자 길이 범위 확인
-sixth_sped_news_filtered <- sixth_sped_news %>% filter(nchar(sixth_sped_news$article) >= 50)
-sixth_sped_news_filtered$article %>%
-    nchar() %>%
-    range()
-```
-
-기초학력지원센터 특수교육지원센터
-
-```{r}
-# 중복 기사 확인 및 삭제
 # support_center_news %>% duplicated() %>% sum()
 support_center_news %<>% filter(!duplicated(.))
 
-# 50자 이상의 뉴스 기사 선택 및 문자 길이 범위 확인
-support_center_news_filtered <- support_center_news %>% filter(nchar(support_center_news$article) >= 50)
-support_center_news_filtered$article %>%
-    nchar() %>%
-    range()
-```
-
-학교교육 학교밖 교육연계
-
-```{r}
-# 중복 기사 확인 및 삭제
 # out_of_school_news %>% duplicated() %>% sum()
 out_of_school_news %<>% filter(!duplicated(.))
 
 # 50자 이상의 뉴스 기사 선택 및 문자 길이 범위 확인
+sixth_sped_news_filtered <- sixth_sped_news %>% filter(nchar(sixth_sped_news$article) >= 50)
+support_center_news_filtered <- support_center_news %>% filter(nchar(support_center_news$article) >= 50)
 out_of_school_news_filtered <- out_of_school_news %>% filter(nchar(out_of_school_news$article) >= 50)
-out_of_school_news_filtered$article %>%
-    nchar() %>%
-    range()
 ```
 
-**3.3. 단어 네트워크 분석에 필요한 함수 정의**
+**3.2. 단어 네트워크 분석에 필요한 함수 정의**
 
 ```{r}
 # 단어 간 쌍별 상관관계 계산 함수
@@ -372,7 +343,7 @@ plot_graph <- function(data, ...) {
 }
 ```
 
-**3.4. 한글 텍스트 전처리**
+**3.3. 한글 텍스트 전처리**
 
 ```{r}
 sixth_sped_join <- sixth_sped_news_filtered %>%
@@ -388,7 +359,7 @@ out_of_school_join <- out_of_school_news_filtered %>%
     extract_pos(text_col = "processed_text")
 ```
 
-**3.5. 6차특수교육발전계획 단어 네트워크 시각화**
+**3.4. 6차특수교육발전계획 단어 네트워크 시각화**
 
 ```{r}
 set.seed(2023)  
@@ -410,7 +381,7 @@ ggsave("figure/sixth_sped_gg.png", width = 8, height = 6)
 
 ![](figure/sixth_sped_gg.png){width=80% height=60%}
 
-**3.6. 기초학력지원센터 특수교육지원센터 단어 네트워크 시각화**
+**3.5. 기초학력지원센터 특수교육지원센터 단어 네트워크 시각화**
 
 ```{r}
 set.seed(2023)
@@ -432,7 +403,7 @@ ggsave("figure/support_center_gg.png", width = 8, height = 6)
 
 ![](figure/support_center_gg.png){width=80% height=60%}
 
-**3.7. 학교교육 학교밖 교육연계 단어 네트워크 시각화**
+**3.6. 학교교육 학교밖 교육연계 단어 네트워크 시각화**
 
 ```{r}  
 set.seed(2023)
