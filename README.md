@@ -1,3 +1,2 @@
-Authors. (2023). Analysis of perception on the direction of education for students with learning disabilities regarding future special education development plans using text mining. https://learning-disability.netlify.app \
-텍스트 마이닝을 활용한 미래 특수교육 발전 방안에 따른 학습장애 학생 교육 방향에 대한 인식 분석. 
+강은영, 신미경, 박해린. (2023). 최근 교육 현장 변화에 따른 미래 학습장애 학생 교육정책 개발을 위한 인식 분석. 
  
