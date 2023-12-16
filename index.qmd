@@ -1,11 +1,13 @@
 ---
-title: "최근 교육 현장 변화에 따른 미래 학습장애 학생 교육정책 개발을 위한 인식 분석 [데이터 및 R 코드]"
+title: "최근 교육 현장 변화에 따른 미래 학습장애 학생 교육정책 개발을 위한 인식 분석"
 subtitle: ""
 format:
   html:
     code-fold: true
     code-tools: true
 ---
+
+강은영, 신미경, 박해린(2023) 논문에서 활용된 데이터와 R 코드는 온라인저장소(https://osf.io/v3urc)에서도 다운로드 받을 수 있습니다.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
