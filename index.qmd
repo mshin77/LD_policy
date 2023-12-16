@@ -1,6 +1,6 @@
 ---
-title: "텍스트 마이닝을 활용한 미래 특수교육 발전 방안에 따른 학습장애 학생 교육 방향에 대한 인식 분석"
-subtitle: "Analysis of Perception on the Direction of Education for Students with Learning Disabilities Regarding Future Special Education Development Plans Using Text Mining"
+title: "최근 교육 현장 변화에 따른 미래 학습장애 학생 교육정책 개발을 위한 인식 분석 [데이터 및 R 코드]"
+subtitle: ""
 format:
   html:
     code-fold: true
@@ -435,7 +435,7 @@ ggsave("figure/out_of_school_gg.png", width = 8.5, height = 6)
 
 **4.1. 엑셀 파일 열기**
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 #| code-fold: false
 data_delphi <- read_excel("data/ld_policy_delphi.xlsx")
 
@@ -446,7 +446,7 @@ out_of_school_delphi <- data_delphi %>% filter(policy_topic == "학교교육_학
 
 **4.2. 한글 텍스트 전처리**
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 sixth_sped_delphi_data <- sixth_sped_delphi %>%
     rm_patterns(text_col = "response") %>%
     extract_pos(text_col = "processed_text") 
@@ -462,8 +462,15 @@ out_of_school_delphi_data <- out_of_school_delphi %>%
 
 **4.3. 6차특수교육발전계획 토픽 모델링**
 
-```{r, eval=FALSE}
-stop_words <- c("좋다", "피다", "많다", "있다", "하다", "위하다", "받다", "대하다", "이루다", "같다", "아니다", "되다", "보입니다", "보입니", "같습니", "같습니다", "경우", "통하다", "않다", "못하다", "없다", "지다")
+```{r, eval = FALSE}
+stop_words <- c("좋다", "좋겠습니", "피다", "많다", "있다", "하다", "위하다", "받다", "대하다", "이루다", "같다", "아니다", "되다", "보입니다", "보입니", "같습니", "같습니다", "경우", "통하다", "않다", "못하다", "없다", "지다")
+
+sixth_sped_delphi_data$pos <- case_when(
+    sixth_sped_delphi_data$pos== "학생들" ~ "학생",
+    sixth_sped_delphi_data$pos== "학부모들이" ~ "학부모",
+
+    TRUE ~ as.character(sixth_sped_delphi_data$pos)
+)
 
 sixth_sped_delphi_dfm <- sixth_sped_delphi_data %>%
     filter(!pos %in% stop_words) %>%
@@ -497,7 +504,7 @@ ggsave("figure/beta_sixth_gg.png", beta_sixth_gg, width = 8.5, height = 7)
 
 **4.4. 기초학력지원센터 특수교육지원센터 토픽 모델링**
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 support_center_delphi_dfm <- support_center_delphi_data %>%
 filter(!pos %in% stop_words) %>%
 count(participant, pos, sort = TRUE) %>%
@@ -529,7 +536,7 @@ ggsave("figure/beta_support_center_gg.png", beta_support_center_gg, width = 8.5,
 
 **4.5. 학교교육 학교밖 교육연계 토픽 모델링**
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 out_of_school_delphi_dfm <- out_of_school_delphi_data %>%
 filter(!pos %in% stop_words) %>%
 count(participant, pos, sort = TRUE) %>%
