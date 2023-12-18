@@ -521,7 +521,7 @@ beta_sixth_sped_gg <- beta_sixth_sped %>%
 ggsave("figure/beta_sixth_sped_gg.png", beta_sixth_sped_gg, width = 8.5, height = 7)
 ```
 
-![](figure/beta_sixth_sped_gg.png){width=80% height=60%
+![](figure/beta_sixth_sped_gg.png){width=80% height=60%}
 
 **4.4. 기초학력지원센터 특수교육지원센터 토픽 모델링**
 
@@ -572,7 +572,7 @@ beta_support_center_gg <- beta_support_center %>%
 ggsave("figure/beta_support_center_gg.png", beta_support_center_gg, width = 8.5, height = 5)
 ```
 
-![](figure/beta_support_center_gg.png){width=80% height=60%}
+![](figure/beta_support_center_gg.png){width=100% height=60%}
 
 **4.5. 학교교육 학교밖 교육연계 토픽 모델링**
 
@@ -623,5 +623,5 @@ beta_out_of_school_gg <- beta_out_of_school %>%
 ggsave("figure/beta_out_of_school_gg.png", beta_out_of_school_gg, width = 8.5, height = 5)
 ```
 
-![](figure/beta_out_of_school_gg.png){width=80% height=60%}
+![](figure/beta_out_of_school_gg.png){width=100% height=60%}
 :::
