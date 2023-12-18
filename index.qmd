@@ -1,5 +1,5 @@
 ---
-title: "최근 교육 현장 변화에 따른 미래 학습장애 학생 교육정책 개발을 위한 인식 분석"
+title: "최근 교육 현장 변화에 따른 미래 학습장애 학생 교육 지원 정책 개발을 위한 인식 분석"
 subtitle: "Analysis of Perceptions for the Development of Future Education Policies for Students with Learning Disabilities in Accordance With Recent Changes in the Education Field"
 format:
   html:
@@ -51,7 +51,7 @@ suppressPackageStartupMessages({
 })
 ```
 
-## **2. 학회지 분석**
+## **2. 학술지/박사학위 내용 분석**
 
 **2.1. 엑셀 파일 열기**
 
@@ -433,7 +433,7 @@ ggsave("figure/out_of_school_gg.png", width = 8.5, height = 6)
 
 ![](figure/out_of_school_gg.png){width=80% height=60%}
 
-## **4. 전문가 자유 응답 토픽 모델링**
+## **4. 전문가 자유 응답 분석**
 
 **4.1. 엑셀 파일 열기**
 
@@ -464,6 +464,8 @@ out_of_school_delphi_data <- out_of_school_delphi %>%
 
 **4.3. 6차특수교육발전계획 토픽 모델링**
 
+평균 주제 발현율 
+
 ```{r, eval = FALSE}
 stop_words <- c("좋다", "좋겠습니", "피다", "많다", "있다", "하다", "위하다", "받다", "대하다", "이루다", "같다", "아니다", "되다", "보입니다", "보입니", "같습니", "같습니다", "경우", "통하다", "않다", "못하다", "없다", "지다")
 
@@ -479,11 +481,29 @@ sixth_sped_delphi_dfm <- sixth_sped_delphi_data %>%
     count(participant, pos, sort = TRUE) %>%
     cast_dfm(participant, pos, n)
 
-topic_model_sixth <- stm(sixth_sped_delphi_dfm, K = 4, init.type = "Spectral", verbose = FALSE)
+topic_model_sixth_sped <- stm(sixth_sped_delphi_dfm, K = 4, init.type = "Spectral", verbose = FALSE)
 
-beta_sixth <- tidy(topic_model_sixth)
+gamma_sixth_sped_td <- tidy(topic_model_sixth_sped, matrix = "gamma",
+                   document_names = rownames(sixth_sped_delphi_dfm ))
 
-beta_sixth_gg <- beta_sixth %>%
+gamma_terms_sixth_sped <- gamma_sixth_sped_td %>%
+    group_by(topic) %>%
+    summarise(gamma = mean(gamma)) %>%
+    arrange(desc(gamma)) %>%
+    mutate(topic = reorder(topic, gamma))
+```
+
+```{r}
+load("data/gamma_terms.Rdata")
+gamma_terms_sixth_sped
+```
+
+주제별 연관 단어 비율 
+
+```{r, eval = FALSE}
+beta_sixth_sped <- tidy(topic_model_sixth, matrix = "beta")
+
+beta_sixth_sped_gg <- beta_sixth_sped %>%
     group_by(topic) %>%
     top_n(15, beta) %>%
     ungroup() %>%
@@ -498,13 +518,14 @@ beta_sixth_gg <- beta_sixth %>%
     scale_x_reordered() +
     theme_minimal()
 
-ggsave("figure/beta_sixth_gg.png", beta_sixth_gg, width = 8.5, height = 7)
+ggsave("figure/beta_sixth_sped_gg.png", beta_sixth_sped_gg, width = 8.5, height = 7)
 ```
 
-![](figure/beta_sixth_gg.png){width=80% height=60%}
-
+![](figure/beta_sixth_sped_gg.png){width=80% height=60%
 
 **4.4. 기초학력지원센터 특수교육지원센터 토픽 모델링**
+
+평균 주제 발현율
 
 ```{r, eval = FALSE}
 support_center_delphi_dfm <- support_center_delphi_data %>%
@@ -512,9 +533,26 @@ filter(!pos %in% stop_words) %>%
 count(participant, pos, sort = TRUE) %>%
 cast_dfm(participant, pos, n)
 
-topic_model_support_center<- stm(support_center_delphi_dfm, K = 3, init.type = "Spectral", verbose = FALSE)
+topic_model_support_center <- stm(support_center_delphi_dfm, K = 3, init.type = "Spectral", verbose = FALSE)
 
-beta_support_center <- tidy(topic_model_support_center)
+gamma_support_center_td <- tidy(topic_model_support_center, matrix = "gamma",
+                   document_names = rownames(support_center_delphi_dfm))
+
+gamma_terms_support_center <- gamma_support_center_td %>%
+    group_by(topic) %>%
+    summarise(gamma = mean(gamma)) %>%
+    arrange(desc(gamma)) %>%
+    mutate(topic = reorder(topic, gamma))
+```
+
+```{r}
+gamma_terms_support_center
+```
+
+주제별 연관 단어 비율 
+
+```{r, eval = FALSE}
+beta_support_center <- tidy(topic_model_support_center, matrix = "beta")
 
 beta_support_center_gg <- beta_support_center %>%
   group_by(topic) %>%
@@ -538,6 +576,8 @@ ggsave("figure/beta_support_center_gg.png", beta_support_center_gg, width = 8.5,
 
 **4.5. 학교교육 학교밖 교육연계 토픽 모델링**
 
+평균 주제 발현율 
+
 ```{r, eval = FALSE}
 out_of_school_delphi_dfm <- out_of_school_delphi_data %>%
 filter(!pos %in% stop_words) %>%
@@ -546,7 +586,24 @@ cast_dfm(participant, pos, n)
 
 topic_model_out_of_school <- stm(out_of_school_delphi_dfm, K = 3, init.type = "Spectral", verbose = FALSE)
 
-beta_out_of_school <- tidy(topic_model_out_of_school)
+gamma_out_of_school_td <- tidy(topic_model_out_of_school, matrix = "gamma",
+                   document_names = rownames(out_of_school_delphi_dfm))
+
+gamma_terms_out_of_school <- gamma_out_of_school_td %>%
+    group_by(topic) %>%
+    summarise(gamma = mean(gamma)) %>%
+    arrange(desc(gamma)) %>%
+    mutate(topic = reorder(topic, gamma))
+```
+
+```{r}
+gamma_terms_out_of_school
+```
+
+주제별 연관 단어 비율 
+
+```{r, eval = FALSE}
+beta_out_of_school <- tidy(topic_model_out_of_school, matrix = "beta")
 
 beta_out_of_school_gg <- beta_out_of_school %>%
   group_by(topic) %>%
